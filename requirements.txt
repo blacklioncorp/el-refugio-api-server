@@ -5,3 +5,4 @@ python-dotenv
 pydantic
 python-multipart
 google-genai # <--- AÑADIR DE NUEVO PARA QUE RENDER LO INSTALE
+psycopg2-binary
