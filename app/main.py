@@ -61,6 +61,46 @@ def read_orders(db: Session = Depends(database.get_db)):
     return db.query(models.Order).all()
 
 
+# --- GESTIÓN DE CATEGORÍAS (ADMIN) ---
+
+class CategoryCreate(BaseModel):
+    name: str
+    icon: str = "🍽️"
+
+@app.post("/categories/")
+def create_category(category: CategoryCreate, db: Session = Depends(database.get_db)):
+    db_cat = models.Category(name=category.name, icon=category.icon)
+    db.add(db_cat)
+    db.commit()
+    db.refresh(db_cat)
+    return db_cat
+
+@app.get("/categories/")
+def read_categories(db: Session = Depends(database.get_db)):
+    return db.query(models.Category).all()
+
+@app.delete("/categories/{cat_id}")
+def delete_category(cat_id: int, db: Session = Depends(database.get_db)):
+    db.query(models.Category).filter(models.Category.id == cat_id).delete()
+    db.commit()
+    return {"message": "Categoría eliminada"}
+
+# --- GESTIÓN DE ÓRDENES (CANCELACIÓN) ---
+
+class OrderStatusUpdate(BaseModel):
+    status: str
+
+@app.put("/orders/{order_id}/status")
+def update_order_status(order_id: int, status_update: OrderStatusUpdate, db: Session = Depends(database.get_db)):
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+    
+    order.status = status_update.status
+    db.commit()
+    return {"message": f"Orden actualizada a {status_update.status}"}
+
+
 # --- RUTA DE IA (Con Importación Segura) ---
 
 @app.post("/ai/generate_menu")
